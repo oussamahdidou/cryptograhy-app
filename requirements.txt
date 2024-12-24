@@ -1,0 +1,7 @@
+opencv-python==4.8.1
+numpy==1.24.3
+cryptography==41.0.1
+scipy==1.11.3
+scikit-image==0.21.0
+matplotlib==3.8.0
+tkinter-utils==0.1.0  # If not using system Python's tkinter
