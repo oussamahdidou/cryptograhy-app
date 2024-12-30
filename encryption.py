@@ -104,7 +104,10 @@ class VideoEncryptor:
             encrypted_frame_bytes = encryptor.update(padded_data) + encryptor.finalize()
             
             # Écrire le frame chiffré (en noir, car on ne peut pas écrire des données chiffrées)
-            out.write(np.zeros((height, width, 3), dtype=np.uint8))
+            # Instead of writing black frames, write the encrypted frame as-is
+            encrypted_frame = np.frombuffer(encrypted_frame_bytes[:height*width*3], dtype=np.uint8)
+            encrypted_frame = encrypted_frame.reshape((height, width, 3))
+            out.write(encrypted_frame)
             
             encrypted_frames.append((iv, encrypted_frame_bytes))
         
