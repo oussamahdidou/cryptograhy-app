@@ -98,7 +98,7 @@ class VideoEncryptor:
             ).encryptor()
             
             # Padding PKCS7 
-            padder = padding.PKCS7(256).padder()  # Correction ici
+            padder = padding.PKCS7(256).padder()
             padded_data = padder.update(frame_bytes) + padder.finalize()
             
             encrypted_frame_bytes = encryptor.update(padded_data) + encryptor.finalize()

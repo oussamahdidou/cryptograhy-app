@@ -80,62 +80,65 @@ class VideoSecurityAnalyzer:
         corr_gb = safe_correlation(g_channel, b_channel)
         
         return corr_rg, corr_rb, corr_gb
-
     def plot_histogram(self, original_video_path, encrypted_video_path, output_path, sample_frames=5):
         """
-        Analyse et trace les histogrammes des frames originales et chiffrées
+        Analyse et trace les histogrammes des frames originales et chiffrées avec leurs images
         """
-        # Ouvrir les vidéos
         cap_orig = cv2.VideoCapture(original_video_path)
         cap_enc = cv2.VideoCapture(encrypted_video_path)
         
-        # Obtenir le nombre total de frames
         total_frames = int(cap_orig.get(cv2.CAP_PROP_FRAME_COUNT))
         frame_interval = total_frames // sample_frames
         
-        # Créer une figure avec une grille de sous-plots
-        fig, axes = plt.subplots(sample_frames, 2, figsize=(15, 5*sample_frames))
-        fig.suptitle('Analyse des Histogrammes: Original vs Chiffré', fontsize=16)
+        # 4 colonnes: image originale, histogramme original, image chiffrée, histogramme chiffré
+        fig, axes = plt.subplots(sample_frames, 4, figsize=(20, 5*sample_frames))
+        fig.suptitle('Analyse des Images et Histogrammes: Original vs Chiffré', fontsize=16)
         
         for i in range(sample_frames):
-            # Positionner à la frame souhaitée
             frame_pos = i * frame_interval
             cap_orig.set(cv2.CAP_PROP_POS_FRAMES, frame_pos)
             cap_enc.set(cv2.CAP_PROP_POS_FRAMES, frame_pos)
             
-            # Lire les frames
             ret_orig, frame_orig = cap_orig.read()
             ret_enc, frame_enc = cap_enc.read()
             
             if not (ret_orig and ret_enc):
                 break
-                
+            
+            # Afficher l'image originale
+            axes[i,0].imshow(cv2.cvtColor(frame_orig, cv2.COLOR_BGR2RGB))
+            axes[i,0].set_title(f'Frame {frame_pos} - Image Originale')
+            axes[i,0].axis('off')
+            
             # Tracer l'histogramme original
-            axes[i,0].set_title(f'Frame {frame_pos} - Original')
+            axes[i,1].set_title(f'Frame {frame_pos} - Histogramme Original')
             for j, color in enumerate(['b', 'g', 'r']):
                 hist = cv2.calcHist([frame_orig], [j], None, [256], [0, 256])
-                axes[i,0].plot(hist, color=color, label=color.upper())
-            axes[i,0].set_xlabel('Valeurs de Pixel')
-            axes[i,0].set_ylabel('Fréquence')
-            axes[i,0].legend()
-            
-            # Tracer l'histogramme chiffré
-            axes[i,1].set_title(f'Frame {frame_pos} - Chiffré')
-            for j, color in enumerate(['b', 'g', 'r']):
-                hist = cv2.calcHist([frame_enc], [j], None, [256], [0, 256])
                 axes[i,1].plot(hist, color=color, label=color.upper())
             axes[i,1].set_xlabel('Valeurs de Pixel')
             axes[i,1].set_ylabel('Fréquence')
             axes[i,1].legend()
+            
+            # Afficher l'image chiffrée
+            axes[i,2].imshow(cv2.cvtColor(frame_enc, cv2.COLOR_BGR2RGB))
+            axes[i,2].set_title(f'Frame {frame_pos} - Image Chiffrée')
+            axes[i,2].axis('off')
+            
+            # Tracer l'histogramme chiffré
+            axes[i,3].set_title(f'Frame {frame_pos} - Histogramme Chiffré')
+            for j, color in enumerate(['b', 'g', 'r']):
+                hist = cv2.calcHist([frame_enc], [j], None, [256], [0, 256])
+                axes[i,3].plot(hist, color=color, label=color.upper())
+            axes[i,3].set_xlabel('Valeurs de Pixel')
+            axes[i,3].set_ylabel('Fréquence')
+            axes[i,3].legend()
         
         plt.tight_layout()
-        plt.savefig(output_path)
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
         
-        # Libérer les ressources
         cap_orig.release()
         cap_enc.release()
-
     def analyze_histogram_statistics(self, original_video_path, encrypted_video_path, sample_rate=30):
         """
         Analyse statistique des histogrammes
@@ -226,7 +229,7 @@ class VideoSecurityAnalyzer:
         while True:
             ret_orig, orig_frame = original_cap.read()
             ret_enc, frame_enc = encrypted_cap.read()
-            ret_dec, dec_frame = decrypted_cap.read()
+            ret_dec, dec_frame = encrypted_cap.read()
             
             if not (ret_orig and ret_enc and ret_dec):
                 break
